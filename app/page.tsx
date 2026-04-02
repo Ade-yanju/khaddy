@@ -226,7 +226,7 @@ export default function KhaddyApex() {
 
           <Canvas shadows camera={{ position: [0, 0, 8], fov: 40 }}>
             <Suspense fallback={null}>
-              <PresentationControls global config={{ mass: 1, tension: 200 }} snap={{ mass: 2, tension: 400 }}>
+            <PresentationControls global config={{ mass: 1, tension: 200 } as any} snap={{ mass: 2, tension: 400 } as any}>
                 <IndustrialCore scrollYProgress={scrollYProgress} />
               </PresentationControls>
               <Environment preset="city" />
