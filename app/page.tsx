@@ -5,15 +5,12 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import {
   Environment,
   ContactShadows,
-  Preload,
-  AdaptiveEvents,
   Float,
   MeshDistortMaterial,
-  Text,
   PresentationControls,
-  BakeShadows,
   OrbitControls,
   Center,
+  Text,
 } from "@react-three/drei";
 import {
   useScroll,
@@ -23,7 +20,6 @@ import {
 } from "framer-motion";
 import * as THREE from "three";
 
-// --- INDUSTRIAL INVENTORY DATA ---
 const PRODUCTS = [
   {
     id: "boot-apex",
@@ -45,11 +41,7 @@ const PRODUCTS = [
     rating: "EN 397",
     img: "https://images.unsplash.com/photo-1590674899484-13da0d1b58f5?q=80&w=600",
     desc: "Carbon-fiber composite shell with 6-point suspension technology.",
-    specs: [
-      "Lateral Deformation Protection",
-      "Molten Metal Splash Resistance",
-      "Vented",
-    ],
+    specs: ["Lateral Deformation Protection", "Vented"],
   },
   {
     id: "harness-pro",
@@ -60,42 +52,47 @@ const PRODUCTS = [
     rating: "ANSI Z359",
     img: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=600",
     desc: "Integrated shock absorber with zero-gravity pressure distribution.",
-    specs: ["5-Point Adjustment", "D-Ring Tensile: 5000lbs", "Breathable Mesh"],
+    specs: ["5-Point Adjustment", "D-Ring Tensile: 5000lbs"],
   },
 ];
 
-// --- 3D COMPONENT: HERO INDUSTRIAL ENGINE ---
-function IndustrialCore({ scrollYProgress }: { scrollYProgress: any }) {
+function IndustrialCore({
+  scrollYProgress,
+  isMobile,
+}: {
+  scrollYProgress: any;
+  isMobile: boolean;
+}) {
   const group = useRef<THREE.Group>(null);
-  const rotY = useTransform(scrollYProgress, [0, 1], [0, Math.PI * 6]);
+  const rotY = useTransform(scrollYProgress, [0, 1], [0, Math.PI * 4]);
   const sphereScale = useTransform(
     scrollYProgress,
     [0, 0.5, 1],
-    [0.8, 1.8, 1.2],
-  ); // Slightly smaller for mobile safety
+    isMobile ? [0.7, 1.4, 1] : [1, 2.2, 1.5],
+  );
 
   useFrame((state) => {
     if (group.current) {
       group.current.rotation.y = rotY.get();
-      group.current.position.y = Math.sin(state.clock.getElapsedTime()) * 0.2;
+      group.current.position.y = Math.sin(state.clock.getElapsedTime()) * 0.1;
     }
   });
 
   return (
     <group ref={group}>
-      <Float speed={1.5} rotationIntensity={0.5} floatIntensity={1}>
+      <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
         <mesh scale={sphereScale.get() as any}>
           <sphereGeometry args={[1, 64, 64]} />
           <MeshDistortMaterial
             color="#FF6B00"
-            speed={3}
-            distort={0.4}
+            speed={4}
+            distort={0.3}
             metalness={0.9}
             roughness={0.1}
           />
         </mesh>
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[1.8, 0.02, 16, 100]} />
+          <torusGeometry args={[isMobile ? 1.4 : 1.8, 0.02, 16, 100]} />
           <meshStandardMaterial
             color="#ffffff"
             emissive="#FF6B00"
@@ -108,55 +105,29 @@ function IndustrialCore({ scrollYProgress }: { scrollYProgress: any }) {
 }
 
 function ProductModel3D({ type }: { type: string }) {
-  const ref = useRef<THREE.Group>(null);
-  useFrame(() => {
-    if (ref.current) ref.current.rotation.y += 0.005;
-  });
   return (
-    <group ref={ref}>
-      <Center>
-        {type === "boot-apex" && (
-          <group>
-            <mesh position={[0, -0.6, 0]} castShadow>
-              <boxGeometry args={[1.2, 0.3, 2.8]} />
-              <meshStandardMaterial
-                color="#111"
-                metalness={0.8}
-                roughness={0.2}
-              />
-            </mesh>
-            <mesh position={[0, 0.6, -0.4]}>
-              <boxGeometry args={[1, 2, 1.8]} />
-              <meshStandardMaterial
-                color="#FF6B00"
-                wireframe
-                transparent
-                opacity={0.6}
-              />
-            </mesh>
-          </group>
-        )}
-        {/* ... Other models remain same but wrapped in Center for auto-alignment ... */}
-        {type === "helm-carbon" && (
-          <mesh castShadow>
-            <sphereGeometry
-              args={[1.2, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2]}
-            />
-            <meshStandardMaterial
-              color="#111"
-              metalness={0.9}
-              roughness={0.2}
-            />
-          </mesh>
-        )}
-        {type === "harness-pro" && (
-          <mesh rotation={[Math.PI / 4, 0, 0]}>
-            <torusGeometry args={[1, 0.15, 16, 100]} />
-            <meshStandardMaterial color="#FF6B00" wireframe />
-          </mesh>
-        )}
-      </Center>
-    </group>
+    <Center>
+      {type === "boot-apex" && (
+        <mesh castShadow>
+          <boxGeometry args={[1.5, 0.5, 2.5]} />
+          <meshStandardMaterial color="#111" metalness={0.8} />
+        </mesh>
+      )}
+      {type === "helm-carbon" && (
+        <mesh castShadow>
+          <sphereGeometry
+            args={[1.2, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2]}
+          />
+          <meshStandardMaterial color="#FF6B00" />
+        </mesh>
+      )}
+      {type === "harness-pro" && (
+        <mesh castShadow rotation={[Math.PI / 4, 0, 0]}>
+          <torusGeometry args={[1, 0.2, 16, 50]} />
+          <meshStandardMaterial color="#555" wireframe />
+        </mesh>
+      )}
+    </Center>
   );
 }
 
@@ -167,15 +138,14 @@ export default function KhaddyApex() {
     (typeof PRODUCTS)[0] | null
   >(null);
   const [isMobile, setIsMobile] = useState(false);
-
   const container = useRef(null);
   const { scrollYProgress } = useScroll({ target: container });
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
@@ -192,13 +162,12 @@ export default function KhaddyApex() {
 
   const handleCheckout = () => {
     const orderId = Math.random().toString(36).toUpperCase().substring(2, 8);
-    let msg = `*PURCHASE ORDER: #${orderId}*\n*CLIENT: KHADDY MULTI-CONCEPTS*\n\n`;
+    let msg = `*PO: #${orderId}*\n`;
     Object.entries(cart).forEach(([id, qty]) => {
       const p = PRODUCTS.find((prod) => prod.id === id);
-      if (qty > 0 && p)
-        msg += `🔳 *${p.name}*\nQTY: ${qty} | Sub: ₦${(p.price * qty).toLocaleString()}\n\n`;
+      if (qty > 0 && p) msg += `- ${p.name} (x${qty})\n`;
     });
-    msg += `--------------------------\n*TOTAL: ₦${grandTotal.toLocaleString()}*`;
+    msg += `*TOTAL: ₦${grandTotal.toLocaleString()}*`;
     window.open(
       `https://wa.me/2348000000000?text=${encodeURIComponent(msg)}`,
       "_blank",
@@ -210,44 +179,34 @@ export default function KhaddyApex() {
       ref={container}
       style={{ backgroundColor: "#080808", color: "#fff", overflowX: "hidden" }}
     >
-      {/* Dynamic Border - Hidden on Mobile */}
-      {!isMobile && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            border: "30px solid #080808",
-            pointerEvents: "none",
-            zIndex: 90,
-          }}
-        />
-      )}
-
-      {/* --- RESPONSIVE NAV --- */}
+      {/* --- HEADER --- */}
       <nav
         style={{
           position: "fixed",
-          top: isMobile ? 20 : 40,
-          left: isMobile ? 20 : 40,
-          right: isMobile ? 20 : 40,
+          top: 0,
+          left: 0,
+          right: 0,
+          padding: isMobile ? "20px" : "40px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           zIndex: 100,
+          background:
+            "linear-gradient(to bottom, rgba(8,8,8,1), rgba(8,8,8,0))",
         }}
       >
         <div
           style={{
             display: "flex",
-            gap: isMobile ? "20px" : "60px",
+            gap: isMobile ? "15px" : "40px",
             alignItems: "center",
           }}
         >
           <span
             style={{
               fontWeight: 900,
-              letterSpacing: isMobile ? "4px" : "8px",
-              fontSize: isMobile ? "0.9rem" : "1.2rem",
+              letterSpacing: "4px",
+              fontSize: isMobile ? "1rem" : "1.2rem",
               color: "#FF6B00",
             }}
           >
@@ -257,35 +216,35 @@ export default function KhaddyApex() {
             <div
               style={{
                 display: "flex",
-                gap: "30px",
-                fontSize: "0.65rem",
+                gap: "20px",
+                fontSize: "0.6rem",
                 fontWeight: 700,
-                letterSpacing: "3px",
+                letterSpacing: "2px",
                 color: "#444",
               }}
             >
-              <span style={{ color: "#fff" }}>SYSTEMS</span>
+              <span>SYSTEMS</span>
               <span>LOGISTICS</span>
             </div>
           )}
         </div>
-        <motion.button
-          whileTap={{ scale: 0.9 }}
+        <button
           onClick={() => setIsCartOpen(true)}
           style={{
             background: "#FF6B00",
             color: "#000",
             border: "none",
-            padding: isMobile ? "8px 15px" : "12px 25px",
+            padding: isMobile ? "8px 12px" : "12px 24px",
             fontWeight: 900,
-            fontSize: "0.6rem",
+            fontSize: "0.65rem",
+            cursor: "pointer",
           }}
         >
           {isMobile ? `[${totalItems}]` : `MANIFEST [${totalItems}]`}
-        </motion.button>
+        </button>
       </nav>
 
-      {/* --- HERO SECTION --- */}
+      {/* --- HERO --- */}
       <section style={{ height: "180vh", position: "relative" }}>
         <div
           style={{
@@ -304,17 +263,16 @@ export default function KhaddyApex() {
               zIndex: 10,
               textAlign: "center",
               width: "100%",
-              padding: "0 20px",
-              y: useTransform(scrollYProgress, [0, 0.2], [0, -150]),
-              opacity: useTransform(scrollYProgress, [0, 0.15], [1, 0]),
+              opacity: useTransform(scrollYProgress, [0, 0.1], [1, 0]),
             }}
           >
             <h1
               style={{
                 fontSize: isMobile ? "18vw" : "12vw",
                 fontWeight: 900,
-                letterSpacing: isMobile ? "-2px" : "-8px",
+                letterSpacing: "-4px",
                 lineHeight: 0.8,
+                margin: 0,
               }}
             >
               CORE
@@ -324,35 +282,30 @@ export default function KhaddyApex() {
             <p
               style={{
                 color: "#444",
-                letterSpacing: isMobile ? "4px" : "12px",
-                marginTop: "20px",
+                letterSpacing: "8px",
+                marginTop: "10px",
                 fontSize: "0.6rem",
               }}
             >
-              ENGINEERED BY KHADDY MULTI-CONCEPTS
+              INDUSTRIAL INFRASTRUCTURE
             </p>
           </motion.div>
-
           <Canvas
             shadows
-            camera={{
-              position: [0, 0, isMobile ? 10 : 8],
-              fov: isMobile ? 50 : 40,
-            }}
+            camera={{ position: [0, 0, isMobile ? 10 : 8], fov: 40 }}
           >
             <Suspense fallback={null}>
-              <PresentationControls
-                global
-                config={{ mass: 1, tension: 200 } as any}
-                snap={{ mass: 2, tension: 400 } as any}
-              >
-                <IndustrialCore scrollYProgress={scrollYProgress} />
+              <PresentationControls global snap>
+                <IndustrialCore
+                  scrollYProgress={scrollYProgress}
+                  isMobile={isMobile}
+                />
               </PresentationControls>
               <Environment preset="city" />
               <ContactShadows
                 position={[0, -3, 0]}
                 opacity={0.4}
-                scale={15}
+                scale={10}
                 blur={2}
               />
             </Suspense>
@@ -360,110 +313,119 @@ export default function KhaddyApex() {
         </div>
       </section>
 
-      {/* --- INVENTORY GRID --- */}
+      {/* --- INVENTORY --- */}
       <section
         style={{
-          padding: isMobile ? "0 20px 100px" : "0 10% 150px",
-          position: "relative",
+          padding: isMobile ? "20px" : "0 10% 100px",
           zIndex: 10,
+          position: "relative",
         }}
       >
-        <div style={{ marginBottom: isMobile ? "50px" : "100px" }}>
-          <h2
-            style={{ fontSize: isMobile ? "2.5rem" : "4rem", fontWeight: 900 }}
-          >
-            Inventory.
-          </h2>
-          <div
-            style={{ height: "2px", width: "60px", background: "#FF6B00" }}
-          />
-        </div>
-
+        <h2
+          style={{
+            fontSize: isMobile ? "2.5rem" : "4rem",
+            fontWeight: 900,
+            margin: "0 0 40px",
+          }}
+        >
+          Inventory.
+        </h2>
         <div
           style={{
             display: "grid",
             gridTemplateColumns: isMobile
               ? "1fr"
-              : "repeat(auto-fit, minmax(400px, 1fr))",
-            gap: isMobile ? "40px" : "80px",
+              : "repeat(auto-fit, minmax(380px, 1fr))",
+            gap: isMobile ? "20px" : "40px",
           }}
         >
           {PRODUCTS.map((p) => (
             <div
               key={p.id}
               style={{
-                border: "1px solid #111",
-                background: "#0a0a0a",
+                background: "#0c0c0c",
+                border: "1px solid #1a1a1a",
                 display: "flex",
                 flexDirection: "column",
               }}
             >
-              <div
+              <img
+                src={p.img}
+                alt={p.name}
                 style={{
-                  height: isMobile ? "300px" : "450px",
-                  position: "relative",
+                  width: "100%",
+                  height: isMobile ? "250px" : "350px",
+                  objectFit: "cover",
+                  opacity: 0.6,
                 }}
-              >
-                <img
-                  src={p.img}
-                  alt={p.name}
+              />
+              <div style={{ padding: "25px" }}>
+                <div
                   style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    opacity: 0.5,
-                  }}
-                />
-              </div>
-              <div style={{ padding: isMobile ? "25px" : "40px" }}>
-                <span style={{ fontSize: "0.6rem", color: "#444" }}>
-                  {p.category}
-                </span>
-                <h3
-                  style={{
-                    fontSize: isMobile ? "1.4rem" : "1.8rem",
-                    margin: "5px 0",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "10px",
                   }}
                 >
+                  <span
+                    style={{
+                      fontSize: "0.6rem",
+                      color: "#FF6B00",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {p.category}
+                  </span>
+                  <span style={{ fontSize: "0.6rem", color: "#444" }}>
+                    {p.rating}
+                  </span>
+                </div>
+                <h3 style={{ fontSize: "1.4rem", margin: "0 0 10px" }}>
                   {p.name}
                 </h3>
                 <p
                   style={{
                     color: "#666",
                     fontSize: "0.85rem",
-                    margin: "15px 0 30px",
+                    lineHeight: 1.5,
+                    height: "3.2em",
+                    overflow: "hidden",
                   }}
                 >
                   {p.desc}
                 </p>
-                <div style={{ display: "flex", gap: "10px" }}>
+                <div
+                  style={{ display: "flex", gap: "10px", marginTop: "20px" }}
+                >
                   <button
                     onClick={() => setViewingProduct(p)}
                     style={{
                       flex: 1,
-                      padding: "15px",
                       background: "none",
                       border: "1px solid #333",
                       color: "#fff",
+                      padding: "12px",
                       fontSize: "0.7rem",
                       fontWeight: 700,
+                      cursor: "pointer",
                     }}
                   >
-                    3D VIEW
+                    INSPECT
                   </button>
                   <button
                     onClick={() => addToCart(p.id)}
                     style={{
                       flex: 1,
-                      padding: "15px",
                       background: "#FF6B00",
-                      color: "#000",
                       border: "none",
+                      color: "#000",
+                      padding: "12px",
                       fontSize: "0.7rem",
                       fontWeight: 900,
+                      cursor: "pointer",
                     }}
                   >
-                    ADD
+                    ADD ITEM
                   </button>
                 </div>
               </div>
@@ -472,7 +434,81 @@ export default function KhaddyApex() {
         </div>
       </section>
 
-      {/* --- RESPONSIVE 3D INSPECTOR --- */}
+      {/* --- FOOTER --- */}
+      <footer
+        style={{
+          padding: isMobile ? "60px 20px" : "100px 10%",
+          background: "#050505",
+          borderTop: "1px solid #111",
+          marginTop: "100px",
+        }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
+            gap: "40px",
+          }}
+        >
+          <div>
+            <h4
+              style={{
+                color: "#FF6B00",
+                margin: "0 0 20px",
+                letterSpacing: "3px",
+              }}
+            >
+              KHADDY.
+            </h4>
+            <p style={{ color: "#444", fontSize: "0.75rem", lineHeight: 1.8 }}>
+              Industrial Safety Infrastructure.
+              <br />
+              KUOLA, IBADAN, NIGERIA.
+            </p>
+          </div>
+          {!isMobile &&
+            ["Infrastructure", "Compliance"].map((col) => (
+              <div key={col}>
+                <h5
+                  style={{
+                    fontSize: "0.65rem",
+                    letterSpacing: "2px",
+                    color: "#666",
+                    margin: "0 0 20px",
+                  }}
+                >
+                  {col.toUpperCase()}
+                </h5>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                    color: "#333",
+                    fontSize: "0.75rem",
+                  }}
+                >
+                  <span>Sales & Support</span>
+                  <span>Technical Docs</span>
+                </div>
+              </div>
+            ))}
+        </div>
+        <div
+          style={{
+            marginTop: "60px",
+            paddingTop: "20px",
+            borderTop: "1px solid #111",
+            fontSize: "0.55rem",
+            color: "#222",
+            textAlign: "center",
+          }}
+        >
+          © 2026 KHADDY MULTI-CONCEPTS.
+        </div>
+      </footer>
+
+      {/* --- MODALS (3D Inspector & Cart) --- */}
       <AnimatePresence>
         {viewingProduct && (
           <motion.div
@@ -490,9 +526,9 @@ export default function KhaddyApex() {
           >
             <div
               style={{
-                flex: 1,
+                flex: isMobile ? "none" : 2,
+                height: isMobile ? "50%" : "100%",
                 position: "relative",
-                height: isMobile ? "50vh" : "auto",
               }}
             >
               <button
@@ -506,11 +542,12 @@ export default function KhaddyApex() {
                   border: "none",
                   color: "#fff",
                   fontSize: "2rem",
+                  cursor: "pointer",
                 }}
               >
                 ×
               </button>
-              <Canvas camera={{ position: [0, 0, 4], fov: 45 }}>
+              <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
                 <ProductModel3D type={viewingProduct.id} />
                 <OrbitControls enableZoom={false} autoRotate />
                 <Environment preset="studio" />
@@ -519,33 +556,24 @@ export default function KhaddyApex() {
             <div
               style={{
                 flex: 1,
-                padding: isMobile ? "30px" : "60px",
+                padding: isMobile ? "20px" : "60px",
+                background: "#0a0a0a",
                 borderLeft: isMobile ? "none" : "1px solid #111",
-                borderTop: isMobile ? "1px solid #111" : "none",
               }}
             >
-              <h2 style={{ fontSize: "2rem", fontWeight: 900 }}>
+              <h2 style={{ fontSize: "2rem", margin: 0 }}>
                 {viewingProduct.name}
               </h2>
               <p
-                style={{ color: "#FF6B00", fontWeight: 700, marginTop: "10px" }}
+                style={{
+                  color: "#FF6B00",
+                  fontSize: "1.5rem",
+                  fontWeight: 900,
+                  margin: "10px 0 30px",
+                }}
               >
                 ₦{viewingProduct.price.toLocaleString()}
               </p>
-              <div style={{ margin: "30px 0" }}>
-                {viewingProduct.specs.map((s, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      padding: "10px 0",
-                      borderBottom: "1px solid #111",
-                      fontSize: "0.8rem",
-                    }}
-                  >
-                    {s}
-                  </div>
-                ))}
-              </div>
               <button
                 onClick={() => addToCart(viewingProduct.id)}
                 style={{
@@ -554,17 +582,14 @@ export default function KhaddyApex() {
                   padding: "20px",
                   fontWeight: 900,
                   border: "none",
+                  cursor: "pointer",
                 }}
               >
-                ADD TO MANIFEST
+                CONFIRM TO MANIFEST
               </button>
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
-
-      {/* --- CART DRAWER --- */}
-      <AnimatePresence>
         {isCartOpen && (
           <>
             <motion.div
@@ -575,8 +600,9 @@ export default function KhaddyApex() {
               style={{
                 position: "fixed",
                 inset: 0,
-                background: "rgba(0,0,0,0.8)",
+                background: "rgba(0,0,0,0.9)",
                 zIndex: 1000,
+                backdropFilter: "blur(10px)",
               }}
             />
             <motion.div
@@ -588,10 +614,12 @@ export default function KhaddyApex() {
                 right: 0,
                 top: 0,
                 height: "100vh",
-                width: isMobile ? "100%" : "450px",
-                background: "#0a0a0a",
+                width: isMobile ? "100%" : "400px",
+                background: "#080808",
                 zIndex: 1001,
-                padding: isMobile ? "30px" : "60px",
+                padding: isMobile ? "30px" : "50px",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
               <div
@@ -599,11 +627,10 @@ export default function KhaddyApex() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  marginBottom: "40px",
                 }}
               >
-                <h2 style={{ fontSize: "1.5rem", fontWeight: 900 }}>
-                  Manifest.
-                </h2>
+                <h2 style={{ margin: 0 }}>Manifest.</h2>
                 <button
                   onClick={() => setIsCartOpen(false)}
                   style={{
@@ -611,26 +638,30 @@ export default function KhaddyApex() {
                     border: "none",
                     color: "#fff",
                     fontSize: "1.5rem",
+                    cursor: "pointer",
                   }}
                 >
                   ×
                 </button>
               </div>
-              <div style={{ marginTop: "40px", flex: 1 }}>
-                {totalItems === 0 ? (
-                  <p style={{ color: "#444" }}>Empty.</p>
-                ) : (
-                  <p>Items Ready: {totalItems}</p>
+              <div style={{ flex: 1, overflowY: "auto" }}>
+                {Object.entries(cart).map(
+                  ([id, qty]) =>
+                    qty > 0 && (
+                      <div
+                        key={id}
+                        style={{
+                          marginBottom: "20px",
+                          borderBottom: "1px solid #111",
+                          paddingBottom: "10px",
+                        }}
+                      >
+                        {PRODUCTS.find((p) => p.id === id)?.name} (x{qty})
+                      </div>
+                    ),
                 )}
               </div>
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: 40,
-                  left: isMobile ? 30 : 60,
-                  right: isMobile ? 30 : 60,
-                }}
-              >
+              <div style={{ borderTop: "1px solid #111", paddingTop: "20px" }}>
                 <div
                   style={{
                     display: "flex",
@@ -652,9 +683,10 @@ export default function KhaddyApex() {
                     padding: "20px",
                     fontWeight: 900,
                     border: "none",
+                    cursor: "pointer",
                   }}
                 >
-                  ORDER ON WHATSAPP
+                  CHECKOUT VIA WHATSAPP
                 </button>
               </div>
             </motion.div>
